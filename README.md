@@ -1,4 +1,4 @@
-# ShockPot
+# Shockpot
 
 Shockpot is a web app honeypot designed to find attackers attempting to exploit the
 Bash remote code vulnerability, CVE-2014-6271.
@@ -40,7 +40,7 @@ python shockpot.py
 
 ## LICENSE
 
-Modern Honeypot Network
+Shockpot
 
 Copyright (C) 2014 - ThreatStream
 
