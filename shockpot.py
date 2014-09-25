@@ -49,7 +49,7 @@ def log_request(record):
 def func(**kwargs):
     log_request(get_request_record())
     response.set_header('Server', app.config['headers.server'])
-    return bottle.template('<b>Hello</b>!', path=str(kwargs))
+    return bottle.template('<b>{{title}}</b>!', title='Hello')
 
 bottle.run(host=app.config['server.host'], port=int(app.config['server.port']))
 
