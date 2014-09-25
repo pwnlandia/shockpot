@@ -6,7 +6,16 @@ import bottle
 from bottle import request, response
 import json
 from util import get_hpfeeds_client
+import re
 
+shellshock_re = re.compile(r'\(\s*\)\s*{')
+
+# this is the default apache page
+page_template = '''<html><body><h1>{{title}}</h1>
+<p>This is the default web page for this server.</p>
+<p>The web server software is running but no content has been added, yet.</p>
+</body></html>
+'''
 
 app = bottle.default_app()
 LOGGER.info( 'Loading config file shockpot.conf ...')
@@ -15,7 +24,7 @@ hpclient = get_hpfeeds_client(app.config)
 
 def is_shellshock(headers):
     for name, value in headers:
-        if '() {' in value:
+        if shellshock_re.search(value):
             return True
     return False
 
@@ -39,7 +48,7 @@ def log_request(record):
     req = json.dumps(record)
     LOGGER.info(req)
 
-    if hpclient:
+    if hpclient and record['is_shellshock']:
         hpclient.publish(app.config['hpfeeds.channel'], req)
 
 @app.route('/')
@@ -49,7 +58,7 @@ def log_request(record):
 def func(**kwargs):
     log_request(get_request_record())
     response.set_header('Server', app.config['headers.server'])
-    return bottle.template('<b>{{title}}</b>!', title='Hello')
+    return bottle.template(page_template, title='It works!')
 
 bottle.run(host=app.config['server.host'], port=int(app.config['server.port']))
 
