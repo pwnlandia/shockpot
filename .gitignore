@@ -1,0 +1,6 @@
+*.log
+.*
+*.pyc
+!.gitignore
+/env
+
