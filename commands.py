@@ -23,7 +23,10 @@ def perform_commands(headers):
 
             # host must match an IP regex and count must be a number, prevents command injection here
             command = 'ping -c {} {}'.format(count, host)
-            os.system(command)
+            try:
+                os.system(command)
+            except Exception as e:
+                LOGGER.error(e)
             return command, ''
             
         mat = wget_check_re.search(value)
