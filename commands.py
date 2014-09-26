@@ -3,7 +3,7 @@ from logger import LOGGER
 import requests
 import socket
 import re
-import os
+import subprocess
 
 ping_check_re = re.compile(r'ping\s+(:?-c\s*(?P<count>\d+)\s+)(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
 wget_check_re = re.compile(r'wget\s+.*(?P<url>https?://[^\s;]+)')
@@ -22,12 +22,12 @@ def perform_commands(headers):
             LOGGER.info('Performing {} pings against {}'.format(count, host))
 
             # host must match an IP regex and count must be a number, prevents command injection here
-            command = 'ping -c {} {}'.format(count, host)
+            command = ['ping', '-n', '-c', str(count), host]
             try:
-                os.system(command)
+                subprocess.call(command)
             except Exception as e:
                 LOGGER.error(e)
-            return command, ''
+            return ' '.join(command), ''
             
         mat = wget_check_re.search(value)
         if mat:
