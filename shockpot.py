@@ -1,3 +1,4 @@
+
 import logger
 logger.logging_setup()
 from logger import LOGGER
@@ -6,6 +7,7 @@ import bottle
 from bottle import request, response
 import json
 from util import get_hpfeeds_client
+from commands import perform_commands
 import re
 
 shellshock_re = re.compile(r'\(\s*\)\s*{')
@@ -30,6 +32,11 @@ def is_shellshock(headers):
 
 def get_request_record():
     headers = [[name, value,] for name, value in request.headers.items()]
+    is_shellshock_check = is_shellshock(headers)
+    
+    command, data = None, None
+    if is_shellshock_check:
+        command, data = perform_commands(headers)
 
     return {
         'method': request.method,
@@ -40,7 +47,9 @@ def get_request_record():
         'source_ip': request.environ.get('REMOTE_ADDR'),
         'dest_port': request.environ.get('SERVER_PORT'),
         'dest_host': request.environ.get('SERVER_NAME'),
-        'is_shellshock': is_shellshock(headers)
+        'is_shellshock': is_shellshock_check,
+        'command': command,
+        'command_data': data,
     }
 
 def log_request(record):
