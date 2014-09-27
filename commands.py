@@ -8,7 +8,26 @@ import subprocess
 ping_check_re = re.compile(r'ping\s+(:?-c\s*(?P<count>\d+)\s+)(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
 wget_check_re = re.compile(r'wget\s+.*(?P<url>https?://[^\s;]+)')
 curl_check_re = re.compile(r'curl\s+.*(?P<url>https?://[^\s;]+)')
+wget_check_re2 = re.compile(r'wget\s+(.*\s+)?(?P<url>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?/[^\s;]+)')
+curl_check_re2 = re.compile(r'curl\s+(.*\s+)?(?P<url>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?/[^\s;]+)')
+
 telnet_check_re = re.compile(r'telnet\s+(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+(?P<port>\d+)')
+
+
+USER_AGENTS = {
+    'wget': 'Wget/1.13.4 (linux-gnu)',
+    'curl': 'curl/7.30.0',
+}
+
+def web_request(program, url):
+    LOGGER.info('Performing {} request on {}'.format(program, url))
+    data = ''
+    try:
+        resp = requests.get(url, headers={'User-Agent': USER_AGENTS[program]})
+        data = resp.text
+    except Exception as e:
+        LOGGER.error(e)
+    return '{} {}'.format(program, url), data
 
 def perform_commands(headers):
     for name, value in headers:
@@ -31,28 +50,19 @@ def perform_commands(headers):
             
         mat = wget_check_re.search(value)
         if mat:
-            wget = mat.groupdict()
-            url = wget['url']
-            LOGGER.info('Performing wget request on {}'.format(url))
-            data = ''
-            try:
-                resp = requests.get(url, headers={'User-Agent': 'Wget/1.13.4 (linux-gnu)'})
-                data = resp.text
-            except Exception as e:
-                LOGGER.error(e)
-            return 'wget {}'.format(url), data
+            return web_request('wget', mat.groupdict()['url'])
+
+        mat = wget_check_re2.search(value)
+        if mat:
+            return web_request('wget', 'http://'+mat.groupdict()['url'])
 
         mat = curl_check_re.search(value)
         if mat:
-            curl = mat.groupdict()
-            url = curl['url']
-            LOGGER.info('Performing curl request on {}'.format(url))
-            try:
-                resp = requests.get(url, headers={'User-Agent': 'curl/7.30.0'})
-                data = resp.text
-            except Exception as e:
-                LOGGER.error(e)
-            return 'curl {}'.format(url), data
+            return web_request('curl', mat.groupdict()['url'])
+
+        mat = curl_check_re2.search(value)
+        if mat:
+            return web_request('curl', 'http://'+mat.groupdict()['url'])
 
         mat = telnet_check_re.search(value)
         if mat:
