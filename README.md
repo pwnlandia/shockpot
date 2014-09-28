@@ -40,6 +40,10 @@ channel = shockpot.events
 python shockpot.py
 ```
 
+## Deployment
+
+See the [wiki](wiki).
+
 ## LICENSE
 
 Shockpot
