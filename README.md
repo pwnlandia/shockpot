@@ -42,7 +42,7 @@ python shockpot.py
 
 ## Deployment
 
-See the [wiki](/wiki).
+See the [wiki](https://github.com/threatstream/shockpot/wiki).
 
 ## LICENSE
 
