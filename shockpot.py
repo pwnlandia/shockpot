@@ -7,6 +7,7 @@ import bottle
 from bottle import request, response
 import json
 from util import get_hpfeeds_client, get_ext_ip
+from util import get_postgresql_handler
 from commands import perform_commands
 import re
 import datetime
@@ -67,11 +68,17 @@ def get_request_record():
 
 def log_request(record):
     global hpclient
+    global dbh
     req = json.dumps(record)
     LOGGER.info(req)
 
     if hpclient and record['is_shellshock']:
         hpclient.publish(app.config['hpfeeds.channel'], req)
+    if dbh and record['is_shellshock']:
+        cursor = dbh.cursor()
+        cursor.execute("INSERT INTO connections (method, url, path, query_string, headers, source_ip, source_port, dest_host, dest_port, is_shellshock, command, command_data, timestamp) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    (record['method'], record['url'], record['path'], record['query_string'], str(record['headers']), record['source_ip'],request.environ.get('REMOTE_PORT'), record['dest_host'], record['dest_port'], record['is_shellshock'], record['command'], record['command_data'], record['timestamp']) )
+        dbh.commit()
 
 @app.route('/')
 @app.route('/<path:re:.+>')
