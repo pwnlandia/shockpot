@@ -50,7 +50,7 @@ python shockpot.py
 
 ## Deployment
 
-See the [wiki](https://github.com/threatstream/shockpot/wiki).
+See the [https://github.com/threatstream/shockpot/wiki](https://github.com/threatstream/shockpot/wiki).
 
 ## LICENSE
 
