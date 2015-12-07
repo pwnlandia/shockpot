@@ -26,6 +26,7 @@ app = bottle.default_app()
 LOGGER.info( 'Loading config file shockpot.conf ...')
 app.config.load_config('shockpot.conf')
 hpclient = get_hpfeeds_client(app.config)
+dbh = get_postgresql_handler(app.config)
 
 public_ip = None
 if app.config['fetch_public_ip.enabled'].lower() == 'true':

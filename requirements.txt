@@ -1,3 +1,4 @@
 bottle==0.12.7
 -e git+https://github.com/threatstream/hpfeeds/#egg=hpfeeds-dev
 requests==2.4.1
+psycopg2
