@@ -7,6 +7,7 @@ import bottle
 from bottle import request, response
 import json
 from util import get_hpfeeds_client, get_ext_ip
+from util import get_postgresql_handler
 from commands import perform_commands
 import re
 import datetime
@@ -23,6 +24,7 @@ app = bottle.default_app()
 LOGGER.info( 'Loading config file shockpot.conf ...')
 app.config.load_config(os.path.join(os.path.dirname(__file__),'shockpot.conf'))
 hpclient = get_hpfeeds_client(app.config)
+dbh = get_postgresql_handler(app.config)
 
 public_ip = None
 if app.config['fetch_public_ip.enabled'].lower() == 'true':
@@ -65,11 +67,17 @@ def get_request_record():
 
 def log_request(record):
     global hpclient
+    global dbh
     req = json.dumps(record)
     LOGGER.info(req)
 
     if hpclient and (record['is_shellshock'] or app.config['hpfeeds.only_exploits'].lower() == 'false'):
         hpclient.publish(app.config['hpfeeds.channel'], req)
+    if dbh and record['is_shellshock']:
+        cursor = dbh.cursor()
+        cursor.execute("INSERT INTO connections (method, url, path, query_string, headers, source_ip, source_port, dest_host, dest_port, is_shellshock, command, command_data, timestamp) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    (record['method'], record['url'], record['path'], record['query_string'], str(record['headers']), record['source_ip'],request.environ.get('REMOTE_PORT'), record['dest_host'], record['dest_port'], record['is_shellshock'], record['command'], record['command_data'], record['timestamp']) )
+        dbh.commit()
 
 @app.route('/')
 @app.route('/<path:re:.+>')

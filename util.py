@@ -1,5 +1,6 @@
 import hpfeeds
 from logger import LOGGER
+import psycopg2
 import socket
 import requests
 from requests.exceptions import Timeout, ConnectionError
@@ -21,6 +22,34 @@ def get_hpfeeds_client(config):
     else:
         LOGGER.info( 'hpfeeds is disabled')
     return hpc
+
+def get_postgresql_handler(config):
+    dbh = None
+    if config['postgresql.enabled'].lower() == 'true':
+        LOGGER.info('postgresql enabled, creating connection to {}:{}'.format(config['postgresql.host'], config['postgresql.port']))
+        dbh = psycopg2.connect(database=config['postgresql.database'], user=config['postgresql.user'], password=config['postgresql.password'], host=config['postgresql.host'], port=config['postgresql.port'])
+        cursor = dbh.cursor()
+        cursor.execute("""CREATE TABLE IF NOT EXISTS 
+                            connections	(
+                            connection SERIAL PRIMARY KEY,
+                            method TEXT, 
+                            url TEXT, 
+                            path TEXT, 
+                            query_string TEXT,
+                            headers TEXT,
+                            source_ip TEXT,
+                            source_port INTEGER,  
+                            dest_host TEXT,
+                            dest_port INTEGER, 
+                            is_shellshock TEXT,
+                            command TEXT,
+                            command_data TEXT,
+                            timestamp INTEGER
+        );""")
+        dbh.commit()
+    else:
+        LOGGER.info( 'postgresql is disabled')
+    return dbh
 
 def valid_ip(ip):
     try:

@@ -32,6 +32,14 @@ port = 10000
 identity = shockpot
 secret = secret
 channel = shockpot.events
+
+[postgresql]
+enabled = True
+database = $POSTGRES_NAME
+user = $POSTGRES_USER
+password = $POSTGRES_PASS
+host = $POSTGRES_HOST
+port = $POSTGRES_PORT
 ```
 
 ## Running
@@ -42,7 +50,7 @@ python shockpot.py
 
 ## Deployment
 
-See the [wiki](https://github.com/threatstream/shockpot/wiki).
+See the [https://github.com/threatstream/shockpot/wiki](https://github.com/threatstream/shockpot/wiki).
 
 ## LICENSE
 
