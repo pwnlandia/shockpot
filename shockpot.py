@@ -11,19 +11,17 @@ from commands import perform_commands
 import re
 import datetime
 import urlparse
+import os
 
 shellshock_re = re.compile(r'\(\s*\)\s*{')
 
 # this is the default apache page
-page_template = '''<html><body><h1>{{title}}</h1>
-<p>This is the default web page for this server.</p>
-<p>The web server software is running but no content has been added, yet.</p>
-</body></html>
-'''
+with open(os.path.join(os.path.dirname(__file__), 'template.html')) as f:
+    page_template = f.read()
 
 app = bottle.default_app()
 LOGGER.info( 'Loading config file shockpot.conf ...')
-app.config.load_config('shockpot.conf')
+app.config.load_config(os.path.join(os.path.dirname(__file__),'shockpot.conf'))
 hpclient = get_hpfeeds_client(app.config)
 
 public_ip = None
@@ -70,7 +68,7 @@ def log_request(record):
     req = json.dumps(record)
     LOGGER.info(req)
 
-    if hpclient and record['is_shellshock']:
+    if hpclient and (record['is_shellshock'] or app.config['hpfeeds.only_exploits'].lower() == 'false'):
         hpclient.publish(app.config['hpfeeds.channel'], req)
 
 @app.route('/')
@@ -78,9 +76,10 @@ def log_request(record):
 @app.route('/', method="POST")
 @app.route('/<path:re:.+>', method="POST")
 def func(**kwargs):
+    template_config = dict([(name[9:], value) for name, value in app.config.items() if name.startswith("template.")])
     log_request(get_request_record())
     response.set_header('Server', app.config['headers.server'])
-    return bottle.template(page_template, title='It works!')
+    return bottle.template(page_template, **template_config)
 
 bottle.run(host=app.config['server.host'], port=int(app.config['server.port']))
 
