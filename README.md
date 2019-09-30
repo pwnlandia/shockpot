@@ -3,7 +3,7 @@
 Shockpot is a web app honeypot designed to find attackers attempting to exploit the
 Bash remote code vulnerability, CVE-2014-6271.
 
-Shockpot can be run as a standalone honypot or easily deployed by Modern Honey Network (MHN): http://github.com/threatstream/mhn
+Shockpot can be run as a standalone honypot or easily deployed by Modern Honey Network (MHN): http://github.com/Pwnlandia/mhn
 
 ## Installation
 
